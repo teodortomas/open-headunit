@@ -58,8 +58,12 @@ import com.andrerinas.openheadunit.utils.CarLauncherManager
 import com.andrerinas.openheadunit.utils.BluetoothHelper
 import com.andrerinas.openheadunit.utils.DummyVpnPolicy
 import com.andrerinas.openheadunit.utils.ToastUtils
+import com.andrerinas.openheadunit.aap.protocol.messages.DrivingStatusEvent
+import com.andrerinas.openheadunit.aap.protocol.messages.GearEvent
 import com.andrerinas.openheadunit.aap.protocol.messages.NightModeEvent
+import com.andrerinas.openheadunit.aap.protocol.messages.ParkingBrakeEvent
 import com.andrerinas.openheadunit.aap.protocol.proto.MediaPlayback
+import com.andrerinas.openheadunit.aap.protocol.proto.Sensors
 import com.andrerinas.openheadunit.decoder.audio.MicRecorder
 import com.andrerinas.openheadunit.connection.AutoConnectHoldPolicy
 import com.andrerinas.openheadunit.connection.CommManager
@@ -657,6 +661,14 @@ class AapService : Service() {
         AppLog.i("AapService: Received request to refresh all sensors")
         // Re-send current states
         nightModeManager?.resendCurrentState()
+        // A parked claim is a state, not an event: re-send it whenever something asks for a
+        // refresh, so a phone that dropped it is told again rather than counting taps until the
+        // next connection.
+        if (settings.reportParked) {
+            commManager.send(ParkingBrakeEvent(true))
+            commManager.send(GearEvent(Sensors.SensorBatch.GearData.GEAR.PARK))
+            commManager.send(DrivingStatusEvent(Sensors.SensorBatch.DrivingStatusData.Status.UNRESTRICTED))
+        }
     }
 
     private fun restartAudio() {

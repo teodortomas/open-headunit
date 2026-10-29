@@ -448,6 +448,21 @@ class Settings(private val context: Context) {
             prefs.edit().putBoolean("fake_speed", value).apply()
         }
 
+    /**
+     * Claim the car is parked to Android Auto: parking brake engaged and gear in P.
+     *
+     * AA's tap limit ("Safety pause") and its keyboard lockout are driven by that parked/moving
+     * state, not by DrivingStatus, and this head unit has no parking-brake signal of its own to
+     * report. Position and speed are left alone - only the two state sensors are added, and only
+     * when this is on, so a unit that does not ask for it sends exactly what it always did.
+     * Announced in service discovery, so it takes effect on the next connection.
+     */
+    var reportParked: Boolean
+        get() = prefs.getBoolean("report-parked", false)
+        set(value) {
+            prefs.edit().putBoolean("report-parked", value).apply()
+        }
+
     var gestureHintShown: Boolean
         get() = prefs.getBoolean("gesture_hint_shown", false)
         set(value) {

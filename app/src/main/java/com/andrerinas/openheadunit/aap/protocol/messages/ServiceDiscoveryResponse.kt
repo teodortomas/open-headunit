@@ -37,6 +37,15 @@ internal class ServiceDiscoveryResponse(context: Context, audioConfig: AudioSess
                 service.id = Channel.ID_SEN
                 service.sensorSourceService = Control.Service.SensorSourceService.newBuilder().also { sources ->
                     sources.addSensors(makeSensorType(Sensors.SensorType.DRIVING_STATUS))
+                    // The parked claim Android Auto actually reads: the brake and the gear, both
+                    // announced so neither has to carry it alone. Off by default, and nothing is
+                    // announced when it is off, so a unit that never asked for it sends exactly the
+                    // sensors it always did.
+                    if (settings.reportParked) {
+                        sources.addSensors(makeSensorType(Sensors.SensorType.PARKING_BRAKE))
+                        sources.addSensors(makeSensorType(Sensors.SensorType.GEAR))
+                        AppLog.i("[ServiceDiscovery] Announcing PARKING_BRAKE and GEAR: this unit reports itself as parked")
+                    }
                     if (settings.useGpsForNavigation) {
                         sources.addSensors(makeSensorType(Sensors.SensorType.LOCATION))
                     }

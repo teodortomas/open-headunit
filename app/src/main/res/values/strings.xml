@@ -1149,6 +1149,8 @@
     <string name="wireless_24ghz_warning">Note: Wireless Android Auto on 2.4GHz devices can lead to lag, stutters, and disconnects. If you experience issues, please test via USB to confirm if it\'s a network limitation.</string>
     <string name="fake_speed_title">Disable Video-Lock (Fake Speed)</string>
     <string name="fake_speed_description">Reports a constant low speed (0.5 m/s) to the phone to prevent video content from being blocked while driving. Use with caution.</string>
+    <string name="report_parked_title">Report Parked to Android Auto</string>
+    <string name="report_parked_description">Announces the parking brake as engaged and the gear in P, so Android Auto does not pause the screen or lock the keyboard while the car is moving. This head unit has no brake signal of its own to read. Takes effect on the next connection. For passengers: the driver must not use the screen while driving.</string>
     <string name="wireless_mode_helper">Wireless Helper</string>
     <string name="wireless_mode_native">Native</string>
     <string name="wireless_mode_server">Headunit Server</string>

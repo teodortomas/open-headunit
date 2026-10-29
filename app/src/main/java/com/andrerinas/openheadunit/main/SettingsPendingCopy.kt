@@ -49,6 +49,7 @@ class SettingsPendingCopy {
     var screenOrientation: Settings.ScreenOrientation? = null
     var appLanguage: String? = null
     var fakeSpeed: Boolean? = null
+    var reportParked: Boolean? = null
     var autoRestartWifi: Boolean? = null
     var narrowBandProfileCap: Boolean? = null
     var debugVideoLowLatency: Boolean? = null
@@ -138,6 +139,7 @@ class SettingsPendingCopy {
         screenOrientation = settings.screenOrientation
         appLanguage = settings.appLanguage
         fakeSpeed = settings.fakeSpeed
+        reportParked = settings.reportParked
         autoRestartWifi = settings.autoRestartWifiWhenP2pStuck
         narrowBandProfileCap = settings.narrowBandProfileCap
         debugVideoLowLatency = settings.debugVideoLowLatency
@@ -228,6 +230,7 @@ class SettingsPendingCopy {
         screenOrientation != settings.screenOrientation ||
         appLanguage != settings.appLanguage ||
         fakeSpeed != settings.fakeSpeed ||
+        reportParked != settings.reportParked ||
         autoRestartWifi != settings.autoRestartWifiWhenP2pStuck ||
         narrowBandProfileCap != settings.narrowBandProfileCap ||
         debugVideoLowLatency != settings.debugVideoLowLatency ||

@@ -5,7 +5,9 @@ import android.content.Intent
 import android.media.AudioManager
 import com.andrerinas.openheadunit.aap.protocol.Channel
 import com.andrerinas.openheadunit.aap.protocol.messages.DrivingStatusEvent
+import com.andrerinas.openheadunit.aap.protocol.messages.GearEvent
 import com.andrerinas.openheadunit.aap.protocol.messages.LocationUpdateEvent
+import com.andrerinas.openheadunit.aap.protocol.messages.ParkingBrakeEvent
 import com.andrerinas.openheadunit.aap.protocol.messages.ServiceDiscoveryResponse
 import com.andrerinas.openheadunit.aap.protocol.proto.Common
 import com.andrerinas.openheadunit.aap.protocol.proto.Control
@@ -275,6 +277,24 @@ internal class AapControlSensor(
 
         aapTransport.send(msg)
         aapTransport.startSensor(request.type.number)
+
+        // The restriction state a car sends when this sensor starts. The copy sent when the channel
+        // opened goes out before the phone has asked for the sensor, so it cannot be the one that
+        // decides anything; without an answer here the phone keeps whatever default it shipped with.
+        if (request.type == Sensors.SensorType.DRIVING_STATUS) {
+            aapTransport.send(DrivingStatusEvent(Sensors.SensorBatch.DrivingStatusData.Status.UNRESTRICTED))
+        }
+
+        // The parked claim, in reply to the request that asks for it. Both sensors carry the same
+        // story - brake engaged, gear in P - because a phone that hears only one of them has a car
+        // that contradicts itself and is free to believe neither.
+        if (settings.reportParked) {
+            when (request.type) {
+                Sensors.SensorType.PARKING_BRAKE -> aapTransport.send(ParkingBrakeEvent(true))
+                Sensors.SensorType.GEAR -> aapTransport.send(GearEvent(Sensors.SensorBatch.GearData.GEAR.PARK))
+                else -> Unit
+            }
+        }
 
         if (request.type == Sensors.SensorType.NIGHT) {
             AppLog.i("Night sensor requested. Triggering immediate update.")
