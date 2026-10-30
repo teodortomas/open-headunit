@@ -17,6 +17,7 @@ import androidx.navigation.fragment.findNavController
 import com.andrerinas.openheadunit.App
 import com.andrerinas.openheadunit.R
 import com.andrerinas.openheadunit.utils.AnnouncedDensityPolicy
+import com.andrerinas.openheadunit.utils.DensityScreenProfile
 import com.andrerinas.openheadunit.utils.OnboardingDisplayPolicy
 import com.andrerinas.openheadunit.utils.Settings
 import com.andrerinas.openheadunit.utils.SystemOptimizer
@@ -44,7 +45,13 @@ class DpiSettingsFragment : Fragment() {
     private lateinit var overPanelWarning: TextView
     private lateinit var clampedNote: TextView
     private lateinit var overrideButton: MaterialButton
+    private lateinit var screenSize: TextView
+    private lateinit var screenProfileNote: TextView
     private var saveButton: MaterialButton? = null
+
+    /** The panel this screen is setting a density for, in its canonical order. */
+    private var panelWidth = 0
+    private var panelHeight = 0
 
     private var initialValue = 0
     private var initialOverride = false
@@ -65,6 +72,8 @@ class DpiSettingsFragment : Fragment() {
         overPanelWarning = view.findViewById(R.id.dpi_over_panel_warning)
         clampedNote = view.findViewById(R.id.dpi_clamped_note)
         overrideButton = view.findViewById(R.id.dpi_portrait_override_button)
+        screenSize = view.findViewById(R.id.dpi_screen_size)
+        screenProfileNote = view.findViewById(R.id.dpi_screen_profile_note)
         overrideButton.setOnClickListener {
             pendingOverride = !pendingOverride
             updateSaveButtonState()
@@ -95,7 +104,22 @@ class DpiSettingsFragment : Fragment() {
         // the device will actually project, so flag it (issue #767).
         updateOverPanelWarning()
 
-        initialValue = settings.dpiPixelDensity
+        // The density is kept for the screen it was set on, so this screen's own value is the one
+        // to show. A device with one screen never sees a difference; a foldable keeps one per half.
+        val panel = realMetrics()
+        panelWidth = panel.widthPixels
+        panelHeight = panel.heightPixels
+        val storedForScreen = DensityScreenProfile.select(
+            DensityScreenProfile.parse(settings.dpiScreenProfiles), panelWidth, panelHeight
+        )
+        screenSize.text = getString(R.string.dpi_screen_size, panelWidth, panelHeight)
+        screenProfileNote.text = if (storedForScreen != null) {
+            getString(R.string.dpi_screen_profile_saved, storedForScreen)
+        } else {
+            getString(R.string.dpi_screen_profile_shared)
+        }
+
+        initialValue = settings.dpiForScreen(panelWidth, panelHeight)
         initialOverride = settings.dpiFloorOverride
         pendingOverride = initialOverride
         val auto = initialValue == 0
@@ -158,11 +182,16 @@ class DpiSettingsFragment : Fragment() {
         // sitting in the text field at this point.
         picker.commitPendingInput()
         val value = currentValue()
-        settings.dpiPixelDensity = value
+        settings.storeDpiForScreen(panelWidth, panelHeight, value)
         if (pendingOverride != initialOverride) settings.dpiFloorOverride = pendingOverride
         settings.commit()
         initialValue = value
         initialOverride = pendingOverride
+        screenProfileNote.text = if (value > 0) {
+            getString(R.string.dpi_screen_profile_saved, value)
+        } else {
+            getString(R.string.dpi_screen_profile_shared)
+        }
         updateSaveButtonState()
         ToastUtils.showToast(requireContext(), R.string.settings_saved, Toast.LENGTH_SHORT, force = true)
     }
