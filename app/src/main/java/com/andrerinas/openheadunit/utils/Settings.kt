@@ -384,6 +384,26 @@ class Settings(private val context: Context) {
             prefs.edit().putInt("dpi-pixel-density", value).apply()
         }
 
+    /**
+     * A DPI per screen size, "widthxheight=dpi;…" in [DensityScreenProfile]'s format, for a device
+     * with more than one screen of its own — a foldable's cover and inner display. Empty means
+     * every screen uses [dpiPixelDensity], which is also what every device had before it existed.
+     */
+    var dpiScreenProfiles: String
+        get() = prefs.getString("dpi-screen-profiles", "") ?: ""
+        set(value) { prefs.edit().putString("dpi-screen-profiles", value).apply() }
+
+    /** The DPI that applies on a screen this many pixels wide and tall; the shared one when none is stored. */
+    fun dpiForScreen(width: Int, height: Int): Int =
+        DensityScreenProfile.select(DensityScreenProfile.parse(dpiScreenProfiles), width, height) ?: dpiPixelDensity
+
+    /** Keeps a DPI for this screen size; 0 hands it back to the shared value. */
+    fun storeDpiForScreen(width: Int, height: Int, dpi: Int) {
+        dpiScreenProfiles = DensityScreenProfile.format(
+            DensityScreenProfile.put(DensityScreenProfile.parse(dpiScreenProfiles), width, height, dpi)
+        )
+    }
+
     /** The DPI screen's "Use anyway": send a stored DPI above the canvas floor (HUIG or portrait) as is. */
     var dpiFloorOverride: Boolean
         get() = prefs.getBoolean("dpi-floor-override", false)

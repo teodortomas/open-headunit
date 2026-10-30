@@ -374,7 +374,7 @@ class OnboardingActivity : BaseActivity() {
         dpiPicker = findViewById<com.andrerinas.openheadunit.view.DpiPickerView>(R.id.onb_dpi_picker).apply {
             val m = realMetrics()
             setPanelResolution(m.widthPixels, m.heightPixels)
-            dpi = settings.dpiPixelDensity.takeIf { it != 0 } ?: recommendedDpi()
+            dpi = settings.dpiForScreen(m.widthPixels, m.heightPixels).takeIf { it != 0 } ?: recommendedDpi()
         }
         updateDpiOverPanelWarning()
 
@@ -1248,9 +1248,11 @@ class OnboardingActivity : BaseActivity() {
         // Next is a button, so it never takes focus off the DPI field; without this a value the
         // user typed and did not confirm would be dropped in favour of the previous one.
         dpiPicker?.commitPendingInput()
-        val stored = settings.dpiPixelDensity
+        // Kept for the screen the wizard is being run on, the same way the DPI screen saves it, so
+        // a device with two screens sets each of them aside instead of having one overwrite the other.
+        val stored = settings.dpiForScreen(panel.widthPixels, panel.heightPixels)
         val dpi = dpiPicker?.let { OnboardingDisplayPolicy.dpiToSave(it.dpi, it.hasUserInteracted, stored) } ?: stored
-        if (dpi != stored) settings.dpiPixelDensity = dpi
+        if (dpi != stored) settings.storeDpiForScreen(panel.widthPixels, panel.heightPixels, dpi)
         if (settings.displaySizePreset != selectedSize.name) settings.displaySizePreset = selectedSize.name
         settings.commit()
         updateDpiOverPanelWarning()

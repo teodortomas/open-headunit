@@ -694,6 +694,20 @@ object HeadUnitScreenConfig {
         getWidthMargin(), getHeightMargin()
     )
 
+    /**
+     * The panel a per-screen DPI is keyed to. The display's own reading when there is one, so a
+     * value comes back on the same screen it was set on, and the canvas otherwise.
+     */
+    private fun densityPanel(): Pair<Int, Int> =
+        if (physicalWidthPx > 0 && physicalHeightPx > 0) physicalWidthPx to physicalHeightPx
+        else screenWidthPx to screenHeightPx
+
+    /** What the user asked for on the screen this session draws into, before any floor applies. */
+    private fun storedDensity(settings: Settings): Int {
+        val (panelW, panelH) = densityPanel()
+        return settings.dpiForScreen(panelW, panelH)
+    }
+
     /** The density decision for the geometry in force, with what was asked and why it changed. */
     fun densityDecision(): AnnouncedDensityPolicy.Decision {
         if (!this::currentSettings.isInitialized) {
@@ -703,7 +717,7 @@ object HeadUnitScreenConfig {
             currentSettings.displaySizePreset, SystemOptimizer.DisplaySizePreset.SMALL_7_8
         )
         return AnnouncedDensityPolicy.decide(
-            currentSettings.dpiPixelDensity, preset,
+            storedDensity(currentSettings), preset,
             getNegotiatedWidth() - getWidthMargin(), getNegotiatedHeight() - getHeightMargin(),
             getPixelAspectRatioE4(), currentSettings.dpiFloorOverride, screenWidthPx, screenHeightPx
         )
@@ -776,7 +790,10 @@ object HeadUnitScreenConfig {
      */
     fun computeSettingsHash(settings: Settings): Int = ScreenSettingsHash.of(
         resolutionId = settings.resolutionId,
-        dpiPixelDensity = settings.dpiPixelDensity,
+        // The density this screen gets, not the shared one: on a device with two screens a value
+        // saved for one of them moves the announcement without touching the shared setting, and a
+        // hash blind to that would keep a surface measured for the old one.
+        dpiPixelDensity = storedDensity(settings),
         pixelAspectRatioE4 = settings.pixelAspectRatioE4,
         insetLeft = settings.insetLeft,
         insetTop = settings.insetTop,

@@ -3208,9 +3208,11 @@ class SettingsFragment : Fragment() {
 
     /** The row shows what Android Auto receives and its dp canvas, after the margins. */
     private fun dpiRowValue(): String {
-        val stored = pendingDpi ?: 0
         val chosen = Settings.Resolution.fromId(pendingResolution ?: settings.resolutionId)
         val (pw, ph) = realPanelResolution()
+        // The row describes this screen: a DPI saved for a second screen of the same device does
+        // not apply here, and reporting the shared value as if it did would be wrong on both.
+        val stored = pendingDpi?.takeIf { it != settings.dpiPixelDensity } ?: settings.dpiForScreen(pw, ph)
         val res = if (chosen == null || chosen == Settings.Resolution.AUTO) {
             com.andrerinas.openheadunit.utils.SystemOptimizer.recommendedResolution(pw, ph)
         } else chosen

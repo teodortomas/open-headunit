@@ -69,6 +69,20 @@
                     android:layout_height="wrap_content" />
             </LinearLayout>
 
+            <TextView
+                android:id="@+id/dpi_screen_size"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:textAppearance="?attr/textAppearanceCaption" />
+
+            <TextView
+                android:id="@+id/dpi_screen_profile_note"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:textAppearance="?attr/textAppearanceCaption" />
+
             <com.andrerinas.openheadunit.view.DpiPickerView
                 android:id="@+id/dpi_picker"
                 android:layout_width="match_parent"
