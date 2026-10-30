@@ -257,6 +257,7 @@
     <!-- Waiting screen while the user brings up the other display. -->
     <string name="dpi_add_title">Add display</string>
     <string name="dpi_add_waiting">Waiting for another display…</string>
+    <string name="dpi_add_sizes">Watching %1$d × %2$d px, window now %3$d × %4$d px</string>
     <string name="dpi_add_hint">Unfold the device, or switch to the other screen. As soon as a display shows a size other than this one, its DPI can be set.</string>
 
     <string name="device_specific_section_display">Display</string>

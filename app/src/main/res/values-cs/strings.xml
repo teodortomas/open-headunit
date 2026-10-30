@@ -1230,6 +1230,7 @@
 
     <string name="dpi_add_title">Přidat displej</string>
     <string name="dpi_add_waiting">Čekám na jiný displej…</string>
+    <string name="dpi_add_sizes">Hlídám %1$d × %2$d px, okno teď %3$d × %4$d px</string>
     <string name="dpi_add_hint">Rozlož telefon nebo přepni na druhý displej. Jakmile se objeví displej s jinou velikostí, než je tato, půjde mu nastavit hustota.</string>
 
     <string name="device_specific_section_display">Displej</string>

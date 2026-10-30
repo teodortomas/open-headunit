@@ -11,6 +11,7 @@ import android.view.Display
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.TextView
 import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
@@ -80,13 +81,15 @@ class DpiAddDisplayFragment : Fragment() {
 
     /** True when a display was found and its DPI screen opened. */
     private fun lookForDisplay(): Boolean {
+        val window = windowSize()
+        showSizes(window)
         val found = NewDisplayPolicy.pick(
             startWidth,
             startHeight,
             startWindowWidth,
             startWindowHeight,
             panelSizes(),
-            windowSize()
+            window
         ) ?: return false
 
         done = true
@@ -115,6 +118,15 @@ class DpiAddDisplayFragment : Fragment() {
         val manager = requireContext().getSystemService(Context.DISPLAY_SERVICE) as DisplayManager
         return manager.displays.mapNotNull { sizeOf(it) }
             .map { NewDisplayPolicy.Size(it.first, it.second) }
+    }
+
+    /** Shows what the wait is comparing against, so nothing about it has to be guessed. */
+    private fun showSizes(window: NewDisplayPolicy.Size) {
+        val text = view?.findViewById<TextView>(R.id.sizes) ?: return
+        text.text = getString(
+            R.string.dpi_add_sizes,
+            startWidth, startHeight, window.width, window.height
+        )
     }
 
     /** The space this app is drawn into: the whole panel fullscreen, part of it in a window. */

@@ -54,6 +54,16 @@
             android:textColor="@color/text_second"
             android:textSize="13sp" />
 
+        <!-- What the app can see right now, so a wait that finds nothing is not a guess. -->
+        <TextView
+            android:id="@+id/sizes"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:gravity="center"
+            android:textColor="@color/text_second"
+            android:textSize="12sp" />
+
         <com.google.android.material.button.MaterialButton
             android:id="@+id/cancel"
             style="@style/Widget.Material3.Button.TextButton"
