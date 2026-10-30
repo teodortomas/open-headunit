@@ -236,6 +236,35 @@
     <string name="dpi_value_format">%1$d DPI</string>
     <string name="dpi_input_hint">DPI</string>
 
+    <!-- The list of displays, shown instead of the single value only when the device is marked as
+         having more than one display (Device-Specific settings). -->
+    <string name="dpi_screens_shared">Automatic (shared value)</string>
+    <string name="dpi_screens_shared_value">%1$d DPI · shared</string>
+    <string name="dpi_screens_section">Displays</string>
+    <string name="dpi_screens_row_value">%1$d DPI</string>
+    <string name="dpi_screens_row_this_screen">%1$d DPI · this screen</string>
+    <string name="dpi_screens_row_automatic">Automatic</string>
+    <string name="dpi_screens_size">%1$d × %2$d px</string>
+    <string name="dpi_screens_badge_this">this display</string>
+    <string name="dpi_screens_add">Add display</string>
+    <string name="dpi_screens_note">At connect, Android Auto gets the value saved for the display it is about to draw into. A display without its own value uses the shared one.</string>
+    <string name="dpi_shared_value_note">This value applies to every display without its own.</string>
+    <string name="dpi_screen_size_other">Display: %1$d × %2$d px</string>
+    <string name="dpi_screen_profile_new">No DPI is saved for this display yet. What you save here is kept for this size only.</string>
+    <string name="dpi_remove_display">Remove this display</string>
+    <string name="dpi_display_removed">Display removed</string>
+
+    <!-- Waiting screen while the user brings up the other display. -->
+    <string name="dpi_add_title">Add display</string>
+    <string name="dpi_add_waiting">Waiting for another display…</string>
+    <string name="dpi_add_hint">Unfold the device, or switch to the other screen. As soon as a display shows a size other than this one, its DPI can be set.</string>
+
+    <string name="device_specific_section_display">Display</string>
+    <string name="device_specific_section_head_unit">Head unit</string>
+    <string name="device_specific_multi_screen">This device has more than one display</string>
+    <string name="device_specific_multi_screen_description">A foldable, an external monitor or DeX. Every display then keeps its own pixel density.</string>
+    <string name="device_specific_multi_screen_off_note">Saved per-display values stay stored but are ignored while this is off.</string>
+
     <string name="title_activity_settings">SettingsActivity</string>
     <string name="dummy_button">Dummy Button</string>
     <string name="dummy_content">DUMMY\nCONTENT</string>

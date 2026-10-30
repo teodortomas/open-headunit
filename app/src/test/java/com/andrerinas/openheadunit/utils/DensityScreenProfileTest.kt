@@ -101,4 +101,11 @@ class DensityScreenProfileTest {
         assertEquals(0, DensityScreenProfile.distance(a, a))
         assertTrue(DensityScreenProfile.distance(a, b) > DensityScreenProfile.MATCH_TOLERANCE_PERMILLE)
     }
+
+    @Test
+    fun `find hands back the entry the list shows, not just its value`() {
+        val stored = entries(inner to 420)
+        assertEquals(Entry(Screen(inner.first, inner.second), 420), DensityScreenProfile.find(stored, inner.first, inner.second))
+        assertNull(DensityScreenProfile.find(stored, cover.first, cover.second))
+    }
 }

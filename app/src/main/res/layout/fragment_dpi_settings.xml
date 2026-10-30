@@ -105,6 +105,15 @@
                 android:layout_height="wrap_content"
                 android:visibility="gone" />
 
+            <!-- Only while editing one display's own value, and only while it has one. -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/dpi_remove_display"
+                style="@style/Widget.Material3.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/dpi_remove_display"
+                android:visibility="gone" />
+
             <TextView
                 android:id="@+id/dpi_over_panel_warning"
                 android:layout_width="match_parent"

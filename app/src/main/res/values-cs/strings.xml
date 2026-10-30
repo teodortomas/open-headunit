@@ -1212,6 +1212,32 @@
     <string name="debug_video_low_latency_description">Při konfiguraci videodekodéru nastaví klíč MediaFormat nízké latence od výrobce. Pokud dekodér klíč odmítne, automaticky se vrátí k výchozímu nastavení.</string>
     <string name="debug_video_feed_hold">Simulovat pomalý dekodér</string>
 
+    <string name="dpi_screens_shared">Automaticky (společná hodnota)</string>
+    <string name="dpi_screens_shared_value">%1$d DPI · společná</string>
+    <string name="dpi_screens_section">Displeje</string>
+    <string name="dpi_screens_row_value">%1$d DPI</string>
+    <string name="dpi_screens_row_this_screen">%1$d DPI · tento displej</string>
+    <string name="dpi_screens_row_automatic">Automaticky</string>
+    <string name="dpi_screens_size">%1$d × %2$d px</string>
+    <string name="dpi_screens_badge_this">tento displej</string>
+    <string name="dpi_screens_add">Přidat displej</string>
+    <string name="dpi_screens_note">Při připojení dostane Android Auto hodnotu uloženou pro displej, do kterého bude kreslit. Displej bez vlastní hodnoty použije společnou.</string>
+    <string name="dpi_shared_value_note">Tato hodnota platí pro každý displej, který nemá vlastní.</string>
+    <string name="dpi_screen_size_other">Displej: %1$d × %2$d px</string>
+    <string name="dpi_screen_profile_new">Pro tento displej zatím není uložená žádná hustota. Co tady uložíš, platí jen pro tuhle velikost.</string>
+    <string name="dpi_remove_display">Odebrat tento displej</string>
+    <string name="dpi_display_removed">Displej odebrán</string>
+
+    <string name="dpi_add_title">Přidat displej</string>
+    <string name="dpi_add_waiting">Čekám na jiný displej…</string>
+    <string name="dpi_add_hint">Rozlož telefon nebo přepni na druhý displej. Jakmile se objeví displej s jinou velikostí, než je tato, půjde mu nastavit hustota.</string>
+
+    <string name="device_specific_section_display">Displej</string>
+    <string name="device_specific_section_head_unit">Hlavní jednotka</string>
+    <string name="device_specific_multi_screen">Zařízení má víc displejů</string>
+    <string name="device_specific_multi_screen_description">Skládačka, externí monitor nebo DeX. Každý displej si pak drží vlastní hustotu pixelů.</string>
+    <string name="device_specific_multi_screen_off_note">Uložené hodnoty displejů zůstávají v paměti, ale dokud je tohle vypnuté, nepoužívají se.</string>
+
     <string name="category_more_features">Další funkce</string>
     <string name="device_specific_settings">Nastavení konkrétního zařízení</string>
     <string name="device_specific_settings_description">Nastavení pro podporované modely hlavních jednotek</string>

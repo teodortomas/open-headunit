@@ -49,9 +49,14 @@ class DpiSettingsFragment : Fragment() {
     private lateinit var screenProfileNote: TextView
     private var saveButton: MaterialButton? = null
 
-    /** The panel this screen is setting a density for, in its canonical order. */
+    /** The display this screen sets a density for; arguments bring in one that is not this panel. */
     private var panelWidth = 0
     private var panelHeight = 0
+
+    /** True while editing one display's own value, false while editing the shared one. */
+    private var scoped = false
+
+    private lateinit var removeDisplay: MaterialButton
 
     private var initialValue = 0
     private var initialOverride = false
@@ -74,6 +79,7 @@ class DpiSettingsFragment : Fragment() {
         overrideButton = view.findViewById(R.id.dpi_portrait_override_button)
         screenSize = view.findViewById(R.id.dpi_screen_size)
         screenProfileNote = view.findViewById(R.id.dpi_screen_profile_note)
+        removeDisplay = view.findViewById(R.id.dpi_remove_display)
         overrideButton.setOnClickListener {
             pendingOverride = !pendingOverride
             updateSaveButtonState()
@@ -104,22 +110,30 @@ class DpiSettingsFragment : Fragment() {
         // the device will actually project, so flag it (issue #767).
         updateOverPanelWarning()
 
-        // The density is kept for the screen it was set on, so this screen's own value is the one
-        // to show. A device with one screen never sees a difference; a foldable keeps one per half.
-        val panel = realMetrics()
-        panelWidth = panel.widthPixels
-        panelHeight = panel.heightPixels
-        val storedForScreen = DensityScreenProfile.select(
-            DensityScreenProfile.parse(settings.dpiScreenProfiles), panelWidth, panelHeight
-        )
-        screenSize.text = getString(R.string.dpi_screen_size, panelWidth, panelHeight)
-        screenProfileNote.text = if (storedForScreen != null) {
-            getString(R.string.dpi_screen_profile_saved, storedForScreen)
+        // Opened from the list of displays with the one it edits; without arguments it edits the
+        // value every display without its own falls back to.
+        val (openWidth, openHeight) = panelSize()
+        panelWidth = openWidth
+        panelHeight = openHeight
+        scoped = requireArguments().getInt(ARG_WIDTH) > 0 && requireArguments().getInt(ARG_HEIGHT) > 0
+        val storedForScreen = if (scoped) settings.storedDpiForScreen(panelWidth, panelHeight) else null
+        screenSize.text = if (scoped) {
+            getString(R.string.dpi_screen_size_other, panelWidth, panelHeight)
         } else {
-            getString(R.string.dpi_screen_profile_shared)
+            getString(R.string.dpi_screen_size, panelWidth, panelHeight)
         }
+        screenSize.visibility = if (scoped || settings.multiScreenDpi) View.VISIBLE else View.GONE
+        screenProfileNote.text = when {
+            scoped && storedForScreen != null -> getString(R.string.dpi_screen_profile_saved, storedForScreen)
+            scoped -> getString(R.string.dpi_screen_profile_new)
+            settings.multiScreenDpi -> getString(R.string.dpi_shared_value_note)
+            else -> ""
+        }
+        screenProfileNote.visibility = if (scoped || settings.multiScreenDpi) View.VISIBLE else View.GONE
+        removeDisplay.visibility = if (scoped && storedForScreen != null) View.VISIBLE else View.GONE
+        removeDisplay.setOnClickListener { removeThisDisplay() }
 
-        initialValue = settings.dpiForScreen(panelWidth, panelHeight)
+        initialValue = if (scoped) storedForScreen ?: 0 else settings.dpiPixelDensity
         initialOverride = settings.dpiFloorOverride
         pendingOverride = initialOverride
         val auto = initialValue == 0
@@ -182,16 +196,21 @@ class DpiSettingsFragment : Fragment() {
         // sitting in the text field at this point.
         picker.commitPendingInput()
         val value = currentValue()
-        settings.storeDpiForScreen(panelWidth, panelHeight, value)
+        if (scoped) {
+            settings.storeDpiForScreen(panelWidth, panelHeight, value)
+        } else {
+            settings.dpiPixelDensity = value
+        }
         if (pendingOverride != initialOverride) settings.dpiFloorOverride = pendingOverride
         settings.commit()
         initialValue = value
         initialOverride = pendingOverride
-        screenProfileNote.text = if (value > 0) {
-            getString(R.string.dpi_screen_profile_saved, value)
-        } else {
-            getString(R.string.dpi_screen_profile_shared)
+        screenProfileNote.text = when {
+            scoped && value > 0 -> getString(R.string.dpi_screen_profile_saved, value)
+            scoped -> getString(R.string.dpi_screen_profile_new)
+            else -> getString(R.string.dpi_shared_value_note)
         }
+        removeDisplay.visibility = if (scoped && value > 0) View.VISIBLE else View.GONE
         updateSaveButtonState()
         ToastUtils.showToast(requireContext(), R.string.settings_saved, Toast.LENGTH_SHORT, force = true)
     }
@@ -215,13 +234,13 @@ class DpiSettingsFragment : Fragment() {
 
     /** The visible size Android Auto gets at the stored resolution, its name and the pixel aspect ratio. */
     private fun previewResolution(): Preview {
-        val m = realMetrics()
+        val (panelW, panelH) = panelSize()
         val chosen = Settings.Resolution.fromId(settings.resolutionId)
         val r = if (chosen == null || chosen == Settings.Resolution.AUTO) {
-            SystemOptimizer.recommendedResolution(m.widthPixels, m.heightPixels)
+            SystemOptimizer.recommendedResolution(panelW, panelH)
         } else chosen
         val (pw, ph) = AnnouncedDensityPolicy.orientPanel(
-            m.widthPixels, m.heightPixels, AnnouncedDensityPolicy.projectsPortrait(settings.screenOrientation)
+            panelW, panelH, AnnouncedDensityPolicy.projectsPortrait(settings.screenOrientation)
         )
         val (w, h) = AnnouncedDensityPolicy.visibleSize(settings.videoFitMode, pw, ph, r.width, r.height)
         val par = AnnouncedDensityPolicy.pixelAspectE4(
@@ -263,6 +282,24 @@ class DpiSettingsFragment : Fragment() {
         overrideButton.visibility = if (note != null) View.VISIBLE else View.GONE
     }
 
+    /** The display being edited: the one in the arguments, else the panel this screen is on. */
+    private fun panelSize(): Pair<Int, Int> {
+        val args = requireArguments()
+        val width = args.getInt(ARG_WIDTH)
+        val height = args.getInt(ARG_HEIGHT)
+        if (width > 0 && height > 0) return width to height
+        val m = realMetrics()
+        return m.widthPixels to m.heightPixels
+    }
+
+    /** Hands this display back to the shared value, so it no longer has a card in the list. */
+    private fun removeThisDisplay() {
+        settings.storeDpiForScreen(panelWidth, panelHeight, 0)
+        settings.commit()
+        ToastUtils.showToast(requireContext(), R.string.dpi_display_removed, Toast.LENGTH_SHORT, force = true)
+        findNavController().navigateUp()
+    }
+
     private fun realMetrics(): DisplayMetrics {
         val m = DisplayMetrics()
         try {
@@ -280,10 +317,10 @@ class DpiSettingsFragment : Fragment() {
     /** Warn (in red) when the chosen resolution is higher than the panel: the DPI is then computed
      * for the capped resolution the device actually projects, not the one the user picked. */
     private fun updateOverPanelWarning() {
-        val m = realMetrics()
-        val ceiling = SystemOptimizer.recommendedResolution(m.widthPixels, m.heightPixels)
+        val (panelW, panelH) = panelSize()
+        val ceiling = SystemOptimizer.recommendedResolution(panelW, panelH)
         val chosen = Settings.Resolution.fromId(settings.resolutionId)
-        val over = m.widthPixels > 0 && chosen != null && chosen != Settings.Resolution.AUTO &&
+        val over = panelW > 0 && chosen != null && chosen != Settings.Resolution.AUTO &&
             (chosen.width > ceiling.width || chosen.height > ceiling.height)
         if (over) {
             overPanelWarning.text =
@@ -295,6 +332,8 @@ class DpiSettingsFragment : Fragment() {
     }
 
     companion object {
+        const val ARG_WIDTH = "screenWidth"
+        const val ARG_HEIGHT = "screenHeight"
         private const val SAVE_ITEM_ID = 1001
     }
 }
