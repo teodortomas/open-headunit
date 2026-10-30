@@ -1,18 +1,16 @@
 package com.andrerinas.openheadunit.main
 
 import android.content.Context
+import android.content.res.Configuration
 import android.graphics.Point
 import android.hardware.display.DisplayManager
-import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-import android.util.DisplayMetrics
 import android.view.Display
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.WindowManager
 import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
@@ -24,15 +22,19 @@ import com.google.android.material.button.MaterialButton
 
 /**
  * Waits for a display other than the one the wait started on, then opens the DPI screen for it.
- * The started size comes in the arguments, so turning or folding the device mid-wait — which
- * recreates the screen — cannot move the mark. Polling covers both a foldable changing the size of
- * the display it already has and a monitor appearing as a new one.
+ *
+ * Two readings are watched, because the two ways a second screen arrives look different. A monitor
+ * shows up in the display list at a size of its own; a foldable, or the app in a resizable window,
+ * leaves the display list alone and only changes the size of the window. Both starting points come
+ * in the arguments, so turning the device mid-wait — which recreates this screen — cannot move them.
  */
 class DpiAddDisplayFragment : Fragment() {
 
     private val handler = Handler(Looper.getMainLooper())
     private var startWidth = 0
     private var startHeight = 0
+    private var startWindowWidth = 0
+    private var startWindowHeight = 0
     private var done = false
 
     private val poll = object : Runnable {
@@ -55,6 +57,8 @@ class DpiAddDisplayFragment : Fragment() {
         }
         startWidth = requireArguments().getInt(ARG_WIDTH)
         startHeight = requireArguments().getInt(ARG_HEIGHT)
+        startWindowWidth = requireArguments().getInt(ARG_WINDOW_WIDTH)
+        startWindowHeight = requireArguments().getInt(ARG_WINDOW_HEIGHT)
     }
 
     override fun onResume() {
@@ -67,20 +71,27 @@ class DpiAddDisplayFragment : Fragment() {
         super.onPause()
     }
 
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+        // A fold or a resized window reaches the app this way, so there is no reason to wait for
+        // the next tick of the poll once it has.
+        if (!done) lookForDisplay()
+    }
+
     /** True when a display was found and its DPI screen opened. */
     private fun lookForDisplay(): Boolean {
-        val sizes = mutableListOf<Pair<Int, Int>>()
-        val manager = requireContext().getSystemService(Context.DISPLAY_SERVICE) as DisplayManager
-        manager.displays.forEach { display -> sizeOf(display)?.let { sizes.add(it) } }
-        sizes.add(currentPanel())
-
-        val found = sizes.firstOrNull {
-            NewDisplayPolicy.isNewDisplay(startWidth, startHeight, it.first, it.second)
-        } ?: return false
+        val found = NewDisplayPolicy.pick(
+            startWidth,
+            startHeight,
+            startWindowWidth,
+            startWindowHeight,
+            panelSizes(),
+            windowSize()
+        ) ?: return false
 
         done = true
         handler.removeCallbacks(poll)
-        openFoundDisplay(found.first, found.second)
+        openFoundDisplay(found.width, found.height)
         return true
     }
 
@@ -99,6 +110,19 @@ class DpiAddDisplayFragment : Fragment() {
         )
     }
 
+    /** The size of every display the device reports, its own included. */
+    private fun panelSizes(): List<NewDisplayPolicy.Size> {
+        val manager = requireContext().getSystemService(Context.DISPLAY_SERVICE) as DisplayManager
+        return manager.displays.mapNotNull { sizeOf(it) }
+            .map { NewDisplayPolicy.Size(it.first, it.second) }
+    }
+
+    /** The space this app is drawn into: the whole panel fullscreen, part of it in a window. */
+    private fun windowSize(): NewDisplayPolicy.Size {
+        val metrics = resources.displayMetrics
+        return NewDisplayPolicy.Size(metrics.widthPixels, metrics.heightPixels)
+    }
+
     private fun sizeOf(display: Display): Pair<Int, Int>? {
         display.mode?.let { mode ->
             if (mode.physicalWidth > 0 && mode.physicalHeight > 0) {
@@ -111,24 +135,11 @@ class DpiAddDisplayFragment : Fragment() {
         return if (point.x > 0 && point.y > 0) point.x to point.y else null
     }
 
-    private fun currentPanel(): Pair<Int, Int> {
-        val metrics = DisplayMetrics()
-        try {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                requireContext().display?.getRealMetrics(metrics)
-            } else {
-                @Suppress("DEPRECATION")
-                (requireContext().getSystemService(Context.WINDOW_SERVICE) as WindowManager)
-                    .defaultDisplay.getRealMetrics(metrics)
-            }
-        } catch (_: Exception) {
-        }
-        return metrics.widthPixels to metrics.heightPixels
-    }
-
     companion object {
         const val ARG_WIDTH = "startWidth"
         const val ARG_HEIGHT = "startHeight"
+        const val ARG_WINDOW_WIDTH = "startWindowWidth"
+        const val ARG_WINDOW_HEIGHT = "startWindowHeight"
         private const val POLL_MS = 600L
     }
 }

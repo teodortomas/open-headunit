@@ -202,13 +202,22 @@
         android:id="@+id/dpiAddDisplayFragment"
         android:name="com.andrerinas.openheadunit.main.DpiAddDisplayFragment"
         android:label="@string/dpi_add_title">
-        <!-- The panel the wait started on; anything else that shows up is the other display. -->
+        <!-- The panel and the window the wait started on; anything else that shows up is the
+             other display. -->
         <argument
             android:name="startWidth"
             android:defaultValue="0"
             app:argType="integer" />
         <argument
             android:name="startHeight"
+            android:defaultValue="0"
+            app:argType="integer" />
+        <argument
+            android:name="startWindowWidth"
+            android:defaultValue="0"
+            app:argType="integer" />
+        <argument
+            android:name="startWindowHeight"
             android:defaultValue="0"
             app:argType="integer" />
     </fragment>

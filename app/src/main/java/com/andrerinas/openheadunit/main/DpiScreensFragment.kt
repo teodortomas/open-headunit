@@ -79,7 +79,11 @@ class DpiScreensFragment : Fragment() {
                     R.id.dpiAddDisplayFragment,
                     bundleOf(
                         DpiAddDisplayFragment.ARG_WIDTH to panelWidth,
-                        DpiAddDisplayFragment.ARG_HEIGHT to panelHeight
+                        DpiAddDisplayFragment.ARG_HEIGHT to panelHeight,
+                        // The wait also watches the window, which is what changes when the app is
+                        // running in a window rather than fullscreen.
+                        DpiAddDisplayFragment.ARG_WINDOW_WIDTH to resources.displayMetrics.widthPixels,
+                        DpiAddDisplayFragment.ARG_WINDOW_HEIGHT to resources.displayMetrics.heightPixels
                     )
                 )
             }
