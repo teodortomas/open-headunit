@@ -225,7 +225,7 @@
     <string name="dpi_automatic_desc_canvas">Uses %1$d DPI for %2$s, a %3$dx%4$d dp canvas.</string>
     <string name="dpi_screen_size">This screen: %1$d × %2$d px</string>
     <string name="dpi_screen_profile_saved">%1$d DPI is saved for this screen size. Android Auto uses it whenever this screen is the one it draws into.</string>
-    <string name="dpi_screen_profile_shared">No DPI is saved for this screen size, so it uses the shared value. A value saved here applies to this screen only.</string>
+    <string name="dpi_screen_profile_shared">No DPI is saved for this screen size yet. A value saved here applies to this screen only.</string>
     <string name="dpi_row_value_format">%1$d (%2$dx%3$d dp)</string>
     <string name="dpi_row_auto_format">Auto: %1$d (%2$dx%3$d dp)</string>
     <string name="dpi_row_clamped_format">%1$d, sent as %2$d (%3$dx%4$d dp)</string>
