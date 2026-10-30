@@ -9,6 +9,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.andrerinas.openheadunit.App
 import com.andrerinas.openheadunit.R
 import com.andrerinas.openheadunit.device.DeviceProfiles
 import com.andrerinas.openheadunit.device.DeviceSpecificHeadUnitSettings
@@ -49,6 +50,28 @@ class DeviceSpecificSettingsFragment : Fragment() {
         if (!::settingsAdapter.isInitialized || !::deviceSettings.isInitialized) return
         val items = mutableListOf<SettingItem>()
 
+        // This phone's own display, not the head unit's. Off, there is one density for everything.
+        val settings = App.provide(requireContext()).settings
+        items.add(SettingItem.CategoryHeader("deviceSpecificDisplay", R.string.device_specific_section_display))
+        items.add(SettingItem.ToggleSettingEntry(
+            stableId = "multiScreenDpi",
+            nameResId = R.string.device_specific_multi_screen,
+            descriptionResId = R.string.device_specific_multi_screen_description,
+            isChecked = settings.multiScreenDpi,
+            onCheckedChanged = { enabled ->
+                settings.multiScreenDpi = enabled
+                settings.commit()
+                updateSettingsList()
+            }
+        ))
+        if (!settings.multiScreenDpi && settings.dpiScreenProfiles.isNotBlank()) {
+            items.add(SettingItem.InfoBanner(
+                stableId = "multiScreenDpi.stored",
+                textResId = R.string.device_specific_multi_screen_off_note
+            ))
+        }
+
+        items.add(SettingItem.CategoryHeader("deviceSpecificHeadUnit", R.string.device_specific_section_head_unit))
         val profiles = DeviceProfiles.all
         val currentProfile = DeviceProfiles.selected(deviceSettings)
         items.add(SettingItem.SettingEntry(

@@ -1888,7 +1888,13 @@ class SettingsFragment : Fragment() {
             value = dpiRowValue(),
             onClick = {
                 try {
-                    findNavController().navigate(R.id.action_settingsFragment_to_dpiSettingsFragment)
+                    // A device with more than one display picks the value per display instead.
+                    val destination = if (settings.multiScreenDpi) {
+                        R.id.action_settingsFragment_to_dpiScreensFragment
+                    } else {
+                        R.id.action_settingsFragment_to_dpiSettingsFragment
+                    }
+                    findNavController().navigate(destination)
                 } catch (e: Exception) {
                     // Failover
                 }
@@ -4057,6 +4063,9 @@ class SettingsFragment : Fragment() {
         // Refresh settings list when returning from sub-screens (e.g. AutoConnectFragment, DarkModeFragment)
         if (::settingsAdapter.isInitialized) {
             settings = App.provide(requireContext()).settings
+            // The DPI screens save on their own button, so this row never holds a pending value;
+            // leaving the copy behind would let Save put the value it replaced back.
+            pending.dpi = settings.dpiPixelDensity
             updateSettingsList()
         }
 

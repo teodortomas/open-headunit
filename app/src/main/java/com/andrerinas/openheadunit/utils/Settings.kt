@@ -393,9 +393,26 @@ class Settings(private val context: Context) {
         get() = prefs.getString("dpi-screen-profiles", "") ?: ""
         set(value) { prefs.edit().putString("dpi-screen-profiles", value).apply() }
 
+    /**
+     * Whether this device is set up as having more than one display, so a density is kept for
+     * each. Off means one value for everything, which is what every device had before it existed.
+     */
+    var multiScreenDpi: Boolean
+        get() = prefs.getBoolean("dpi-multi-screen", false)
+        set(value) { prefs.edit().putBoolean("dpi-multi-screen", value).apply() }
+
     /** The DPI that applies on a screen this many pixels wide and tall; the shared one when none is stored. */
     fun dpiForScreen(width: Int, height: Int): Int =
-        DensityScreenProfile.select(DensityScreenProfile.parse(dpiScreenProfiles), width, height) ?: dpiPixelDensity
+        if (multiScreenDpi) {
+            DensityScreenProfile.select(DensityScreenProfile.parse(dpiScreenProfiles), width, height)
+                ?: dpiPixelDensity
+        } else {
+            dpiPixelDensity
+        }
+
+    /** The DPI kept for exactly this screen, or null when it uses the shared value. */
+    fun storedDpiForScreen(width: Int, height: Int): Int? =
+        DensityScreenProfile.select(DensityScreenProfile.parse(dpiScreenProfiles), width, height)
 
     /** Keeps a DPI for this screen size; 0 hands it back to the shared value. */
     fun storeDpiForScreen(width: Int, height: Int, dpi: Int) {

@@ -59,13 +59,17 @@ object DensityScreenProfile {
         "${entry.screen.width}$TIMES${entry.screen.height}$PAIR${entry.dpi}"
     }
 
-    /** The DPI stored for a screen this size: an exact reading first, then the nearest close enough. */
-    fun select(entries: List<Entry>, width: Int, height: Int): Int? {
+    /** The entry for a screen this size: an exact reading first, then the nearest close enough. */
+    fun find(entries: List<Entry>, width: Int, height: Int): Entry? {
         val panel = screen(width, height) ?: return null
-        entries.firstOrNull { it.screen == panel }?.let { return it.dpi }
+        entries.firstOrNull { it.screen == panel }?.let { return it }
         val nearest = entries.minByOrNull { distance(it.screen, panel) } ?: return null
-        return if (distance(nearest.screen, panel) <= MATCH_TOLERANCE_PERMILLE) nearest.dpi else null
+        return if (distance(nearest.screen, panel) <= MATCH_TOLERANCE_PERMILLE) nearest else null
     }
+
+    /** The DPI stored for a screen this size, or null when it has none of its own. */
+    fun select(entries: List<Entry>, width: Int, height: Int): Int? =
+        find(entries, width, height)?.dpi
 
     /** Writes a DPI for this screen; 0 or less removes it, which leaves that screen on Automatic. */
     fun put(entries: List<Entry>, width: Int, height: Int, dpi: Int): List<Entry> {
