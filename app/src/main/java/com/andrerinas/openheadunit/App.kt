@@ -29,7 +29,8 @@ import com.andrerinas.openheadunit.main.AppDrawerFragment
 import com.andrerinas.openheadunit.main.FloatingButtonManager
 import java.io.File
 
-class App : Application(), Application.ActivityLifecycleCallbacks {
+// Open so a test can stand the app up under Robolectric, which leaves the native library dir null.
+open class App : Application(), Application.ActivityLifecycleCallbacks {
 
     private var startedActivityCount = 0
 
@@ -95,8 +96,9 @@ class App : Application(), Application.ActivityLifecycleCallbacks {
 
         AppLog.d( "native library dir ${applicationInfo.nativeLibraryDir}")
 
-        File(applicationInfo.nativeLibraryDir).listFiles()?.forEach { file ->
-            AppLog.d( "   ${file.name}")
+        // Null under Robolectric's package manager, which the UI tests run on.
+        applicationInfo.nativeLibraryDir?.let { dir ->
+            File(dir).listFiles()?.forEach { file -> AppLog.d( "   ${file.name}") }
         }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {

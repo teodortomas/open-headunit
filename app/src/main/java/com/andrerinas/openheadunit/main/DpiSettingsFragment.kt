@@ -115,7 +115,8 @@ class DpiSettingsFragment : Fragment() {
         val (openWidth, openHeight) = panelSize()
         panelWidth = openWidth
         panelHeight = openHeight
-        scoped = requireArguments().getInt(ARG_WIDTH) > 0 && requireArguments().getInt(ARG_HEIGHT) > 0
+        // Opened from the list with a display; nothing in the arguments means the shared value.
+        scoped = arguments?.let { it.getInt(ARG_WIDTH) > 0 && it.getInt(ARG_HEIGHT) > 0 } ?: false
         val storedForScreen = if (scoped) settings.storedDpiForScreen(panelWidth, panelHeight) else null
         screenSize.text = if (scoped) {
             getString(R.string.dpi_screen_size_other, panelWidth, panelHeight)
@@ -284,10 +285,8 @@ class DpiSettingsFragment : Fragment() {
 
     /** The display being edited: the one in the arguments, else the panel this screen is on. */
     private fun panelSize(): Pair<Int, Int> {
-        val args = requireArguments()
-        val width = args.getInt(ARG_WIDTH)
-        val height = args.getInt(ARG_HEIGHT)
-        if (width > 0 && height > 0) return width to height
+        val scoped = arguments?.let { it.getInt(ARG_WIDTH) > 0 && it.getInt(ARG_HEIGHT) > 0 } ?: false
+        if (scoped) return arguments!!.getInt(ARG_WIDTH) to arguments!!.getInt(ARG_HEIGHT)
         val m = realMetrics()
         return m.widthPixels to m.heightPixels
     }

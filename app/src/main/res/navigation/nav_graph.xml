@@ -180,7 +180,18 @@
     <fragment
         android:id="@+id/dpiSettingsFragment"
         android:name="com.andrerinas.openheadunit.main.DpiSettingsFragment"
-        android:label="@string/dpi" />
+        android:label="@string/dpi">
+        <!-- The display the screen edits. Both zero is the shared value, so the arguments always
+             exist and the screen never has to guess. -->
+        <argument
+            android:name="screenWidth"
+            android:defaultValue="0"
+            app:argType="integer" />
+        <argument
+            android:name="screenHeight"
+            android:defaultValue="0"
+            app:argType="integer" />
+    </fragment>
 
     <fragment
         android:id="@+id/dpiScreensFragment"
@@ -190,7 +201,17 @@
     <fragment
         android:id="@+id/dpiAddDisplayFragment"
         android:name="com.andrerinas.openheadunit.main.DpiAddDisplayFragment"
-        android:label="@string/dpi_add_title" />
+        android:label="@string/dpi_add_title">
+        <!-- The panel the wait started on; anything else that shows up is the other display. -->
+        <argument
+            android:name="startWidth"
+            android:defaultValue="0"
+            app:argType="integer" />
+        <argument
+            android:name="startHeight"
+            android:defaultValue="0"
+            app:argType="integer" />
+    </fragment>
 
     <fragment
         android:id="@+id/performanceOverlaySettingsFragment"

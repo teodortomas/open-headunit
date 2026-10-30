@@ -16,6 +16,7 @@ import android.view.WindowManager
 import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
+import androidx.navigation.navOptions
 import com.andrerinas.openheadunit.R
 import com.andrerinas.openheadunit.utils.NewDisplayPolicy
 import com.google.android.material.appbar.MaterialToolbar
@@ -79,17 +80,23 @@ class DpiAddDisplayFragment : Fragment() {
 
         done = true
         handler.removeCallbacks(poll)
-        val nav = findNavController()
-        nav.navigate(
+        openFoundDisplay(found.first, found.second)
+        return true
+    }
+
+    /**
+     * Opens the DPI screen for the display just found. The waiting screen is popped on the way, in
+     * the same transaction, so Back from the editor returns to the list rather than here.
+     */
+    internal fun openFoundDisplay(width: Int, height: Int) {
+        findNavController().navigate(
             R.id.dpiSettingsFragment,
             bundleOf(
-                DpiSettingsFragment.ARG_WIDTH to found.first,
-                DpiSettingsFragment.ARG_HEIGHT to found.second
-            )
+                DpiSettingsFragment.ARG_WIDTH to width,
+                DpiSettingsFragment.ARG_HEIGHT to height
+            ),
+            navOptions { popUpTo(R.id.dpiAddDisplayFragment) { inclusive = true } }
         )
-        // Drops this waiting screen, so Back returns to the list and not here.
-        nav.popBackStack(R.id.dpiAddDisplayFragment, true)
-        return true
     }
 
     private fun sizeOf(display: Display): Pair<Int, Int>? {
