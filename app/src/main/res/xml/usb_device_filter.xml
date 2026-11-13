@@ -24,6 +24,18 @@
     <usb-device vendor-id="6353" product-id="11521" />  <!-- 0x18D1:0x2D01 accessory + ADB -->
 
     <!--
+        The rest of the Google VID, which is the state before the AOA switch. A dongle nobody has
+        talked to yet enumerates at 0x18D1:0x4EE1 with class 0 and no interface, so nothing above
+        matches it and the OS never offers us the attach; the handshake that flips a dongle into
+        accessory mode can only run once we are asked for it. A wired phone does not need this,
+        because it enumerates already in accessory mode. The rule cannot be narrowed in the
+        manifest, so the policy judges what arrives: it accepts the idle state only with an empty
+        descriptor, and it excludes the audio-only modes 0x2D02 and 0x2D03 by product id, because
+        their descriptor is the idle dongle's.
+    -->
+    <usb-device vendor-id="6353" />
+
+    <!--
         Vendor class. This is the accessory interface, and also how modern Android presents MTP,
         so it is what catches a phone in charging-only or file-transfer mode. It is the loosest
         entry here: a USB ethernet controller carries the same triple on its control interface and

@@ -37,17 +37,32 @@ class UsbManifestFilterTest {
         val fixtures = listOf(
             UsbDeviceFixtures.phoneMtp, UsbDeviceFixtures.phoneAdb, UsbDeviceFixtures.phoneAccessory,
             UsbDeviceFixtures.phoneAccessoryPlain, UsbDeviceFixtures.samsungFileTransfer,
+            UsbDeviceFixtures.idleAawireless,
         )
         for (device in fixtures) {
             assertTrue(UsbDeviceIdentityPolicy.evaluate(device).accepted)
             assertTrue("%04X:%04X".format(device.vendorId, device.productId), matches(device))
         }
-        // 2D04 and 2D05 are accepted by the policy and absent from the filter; the app never
-        // sends the AOA audio request, so a phone never takes them.
-        for (pid in listOf(0x2D04, 0x2D05)) {
+    }
+
+    @Test
+    fun `the bare Google-VID entry offers every Google identity, so the policy is the gate`() {
+        // The idle dongle has no interface a triple could match, which is why the entry is bare.
+        assertTrue(matches(UsbDeviceFixtures.idleAawireless))
+        assertTrue(UsbDeviceIdentityPolicy.evaluate(UsbDeviceFixtures.idleAawireless).accepted)
+        // 2D00 and 2D01 were listed on their own before, and stay accepted.
+        for (pid in listOf(0x2D00, 0x2D01, 0x2D04, 0x2D05)) {
+            val accessory = Device(0x18D1, pid, 0x00, emptyList())
+            assertTrue("0x%04X".format(pid), matches(accessory))
+            assertTrue(UsbDeviceIdentityPolicy.evaluate(accessory).accepted)
+        }
+        // The audio-only modes reach us now: their descriptor is the idle dongle's, so the policy
+        // excludes them by PID, and the manifest cannot express that refusal, which is the split
+        // the file header documents.
+        for (pid in listOf(0x2D02, 0x2D03)) {
             val audio = Device(0x18D1, pid, 0x00, emptyList())
-            assertTrue(UsbDeviceIdentityPolicy.evaluate(audio).accepted)
-            assertFalse(matches(audio))
+            assertTrue("0x%04X".format(pid), matches(audio))
+            assertFalse(UsbDeviceIdentityPolicy.evaluate(audio).accepted)
         }
     }
 

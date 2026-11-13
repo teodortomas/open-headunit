@@ -59,6 +59,12 @@ object UsbDeviceIdentityPolicy {
         0x2D05, // accessory + audio + ADB
     )
 
+    /** The audio-only accessory modes. The bare Google-VID filter entry offers them; nothing else does. */
+    private val AUDIO_ONLY_ACCESSORY_PIDS = setOf(
+        0x2D02, // accessory + audio
+        0x2D03, // accessory + audio + ADB
+    )
+
     /**
      * `iInterface` on the vendor-class interface. Three different products present the identical
      * FF/FF/00 triple, and only this string tells them apart: the accessory gadget names itself,
@@ -96,6 +102,19 @@ object UsbDeviceIdentityPolicy {
 
         if (isInAccessoryMode(device.vendorId, device.productId)) {
             return Verdict(true, "already in accessory mode")
+        }
+
+        // A dongle before the AOA switch: Google VID, class 0, nothing enumerated, and not a PID
+        // that has declared itself. The AOA handshake is what gives a device interfaces, so
+        // demanding one here would mean never starting the handshake, and the idle state is judged
+        // on the descriptor alone. A Google device with declared interfaces or a device class of its
+        // own goes on to the rules below. The audio-only modes are excluded by PID because the
+        // bare filter entry now offers them too, and nothing in the descriptor separates them from
+        // an idle dongle.
+        if (device.vendorId == GOOGLE_VID && device.deviceClass == 0x00 &&
+            device.interfaces.isEmpty() &&
+            device.productId !in AUDIO_ONLY_ACCESSORY_PIDS) {
+            return Verdict(true, "Google vendor id, idle accessory candidate")
         }
 
         // Rarely fires, because a composite device reports class 0 and defers to its interfaces.
