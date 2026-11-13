@@ -93,4 +93,14 @@ internal object UsbDeviceFixtures {
             Interface(0x0A, 0x00, 0x01),
         ),
     )
+
+    /**
+     * An AAWireless Two before any app has talked to it, `18D1:4EE1`, class 0, no interface, from
+     * the reporter's live `UsbHostManager` capture. The AOA handshake is what produces interfaces,
+     * so this is the whole descriptor, and it is what the bare Google-VID filter entry exists for.
+     */
+    val idleAawireless = Device(
+        vendorId = 0x18D1, productId = 0x4EE1, deviceClass = 0x00,
+        interfaces = emptyList(),
+    )
 }

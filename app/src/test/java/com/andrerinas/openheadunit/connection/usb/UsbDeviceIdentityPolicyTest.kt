@@ -227,10 +227,38 @@ class UsbDeviceIdentityPolicyTest {
 
     @Test
     fun `the audio-only accessory modes are not accepted, having no accessory interface`() {
+        // The bare Google-VID filter entry offers these to the app, and their descriptor - class 0,
+        // no interfaces - is the idle dongle's, so the idle rule excludes them by PID.
         for (pid in listOf(0x2D02, 0x2D03)) {
             val device = Device(0x18D1, pid, 0x00, emptyList())
-            assertFalse(evaluate(device).accepted)
+            assertEquals("rejected: no Android interface", evaluate(device).toString())
         }
+    }
+
+    @Test
+    fun `an idle dongle is accepted, because the AOA handshake is what produces its interfaces`() {
+        // 18D1:4EE1, the descriptor from the reporter's capture. Demanding an interface here is
+        // what kept every dongle that idles before the switch out of the app: nothing asked us for
+        // the attach, so nothing ran the handshake that would have produced one.
+        val device = UsbDeviceFixtures.idleAawireless
+        assertEquals("accepted: Google vendor id, idle accessory candidate", evaluate(device).toString())
+    }
+
+    @Test
+    fun `the idle rule stays narrow, so a Google device that declares itself is judged as before`() {
+        // A declared interface goes to the probe, not to the idle rule.
+        val serialPair = Device(
+            0x18D1, 0x4EE1, 0x00,
+            listOf(
+                Interface(0x02, 0x02, 0x01),
+                Interface(0x0A, 0x00, 0x00, hasBulkIn = true, hasBulkOut = true),
+            ),
+        )
+        assertEquals("rejected: CDC-ACM serial device, not a phone", evaluate(serialPair).toString())
+        // A declared device class of its own goes to the class veto. The idle rule sits after the
+        // accessory check and before this veto, so that ordering is what the test pins.
+        val hub = Device(0x18D1, 0x4EE1, 0x09, emptyList())
+        assertEquals("rejected: device class 0x09 is not a phone", evaluate(hub).toString())
     }
 
     @Test
